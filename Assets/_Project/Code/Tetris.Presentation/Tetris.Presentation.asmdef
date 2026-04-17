@@ -1,0 +1,18 @@
+{
+    "name": "Tetris.Presentation",
+    "rootNamespace": "",
+    "references": [
+        "GUID:cf86505ce2fdb0d4b9317075c2bd14bd",
+        "GUID:4b4ad84a243f07c4992f11c6b7153aef",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

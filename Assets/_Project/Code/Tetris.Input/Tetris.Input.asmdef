@@ -1,0 +1,16 @@
+{
+    "name": "Tetris.Input",
+    "rootNamespace": "",
+    "references": [
+        "GUID:cf86505ce2fdb0d4b9317075c2bd14bd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
