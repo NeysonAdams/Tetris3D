@@ -11,12 +11,18 @@ namespace Tetris.Core.Configs
     public sealed class TetrominoShapeSo : ScriptableObject
     {
         [SerializeField]
-        private Tetrominoes.TetrominiType _type;
+        private Tetrominoes.TetrominoType _type;
 
         [SerializeField]
         private Vector3Int[] _cells = System.Array.Empty<Vector3Int>();
+        [SerializeField]
+        private Color _defaultColor = Color.white;
+        [SerializeField]
+        private string _displayName = string.Empty;
 
-        public Tetrominoes.TetrominiType Type => _type;
+        public Tetrominoes.TetrominoType Type => _type;
         public Vector3Int[] Cells => _cells;
+        public Color DefaultColor => _defaultColor;
+        public string DisplayName => _displayName;
     }
 }

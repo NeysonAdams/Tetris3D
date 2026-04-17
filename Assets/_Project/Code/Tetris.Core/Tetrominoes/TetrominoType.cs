@@ -1,6 +1,6 @@
 namespace Tetris.Core.Tetrominoes
 {
-    public enum TetrominiType
+    public enum TetrominoType
     {
         I = 0,
         L = 1,
