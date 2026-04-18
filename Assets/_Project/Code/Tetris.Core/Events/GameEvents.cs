@@ -3,7 +3,7 @@ using Tetris.Core.Configs;
 using Tetris.Core.Scoring;
 using Tetris.Core.Tetrominoes;
 
-namespace Tetris.Core.Tetrominoes
+namespace Tetris.Core.Events
 {
     public sealed class GameEvents
     {
@@ -15,7 +15,7 @@ namespace Tetris.Core.Tetrominoes
         public event Action? GameResumed;
 
         public void InvokeGamesStarted() => GameStarted?.Invoke();
-        public void InvokeGamesOver(ScoreState finalScore) => GameOver?.Invoke(finalScore);
+        public void InvokeGameOver(ScoreState finalScore) => GameOver?.Invoke(finalScore);
         public void InvokeGamePaused() => GamePaused?.Invoke();
         public void InvokeGameResumed() => GameResumed?.Invoke();
 
