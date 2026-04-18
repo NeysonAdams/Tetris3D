@@ -22,7 +22,7 @@ namespace Tetris.Core.Events
         #endregion
 
         #region Piece
-        public event Action<Piece>? PieceSwaped;
+        public event Action<Piece>? PieceSpawned;
         public event Action<Piece>? PieceMoved;
         public event Action<Piece>? PieceRotated;
         public event Action<Piece>? PieceFell;
@@ -30,7 +30,7 @@ namespace Tetris.Core.Events
         public event Action<Piece, TetrominoType>? PieceLocked;
         public event Action<Piece>? GhostPieceChanged;
 
-        public void InvokePieceSwaped(Piece piece) => PieceSwaped?.Invoke(piece);
+        public void InvokePieceSwaped(Piece piece) => PieceSpawned?.Invoke(piece);
         public void InvokePieceMoved(Piece piece) => PieceMoved?.Invoke(piece);
         public void InvokePieceRotated(Piece piece) => PieceRotated?.Invoke(piece);
         public void InvokePieceFell (Piece piece) => PieceFell?.Invoke(piece);
