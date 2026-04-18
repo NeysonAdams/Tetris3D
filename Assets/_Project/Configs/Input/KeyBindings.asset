@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a212681917409744d8eea516ee73d2d2, type: 3}
+  m_Name: KeyBindings
+  m_EditorClassIdentifier: 
+  _moveNegativeX: 276
+  _movePositiveX: 275
+  _moveNegativeZ: 274
+  _movePositiveZ: 273
+  _softDrop: 304
+  _hardDrop: 32
+  _rotateNegativeX: 97
+  _rotatePositiveX: 100
+  _rotateNegativeY: 113
+  _rotatePositiveY: 101
+  _rotateNegativeZ: 115
+  _rotatePositiveZ: 119
+  _pause: 27
