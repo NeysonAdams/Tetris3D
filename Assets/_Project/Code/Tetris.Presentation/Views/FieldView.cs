@@ -87,7 +87,7 @@ namespace Tetris.Presentation.Views
 
                 if (logical.y >= _field.SizeY) continue;
                 if(!_field.IsInside(logical)) continue;
-                if(!_blocks.ContainsKey(logical)) continue;
+                if(_blocks.ContainsKey(logical)) continue;
 
                 var worldPos = logical.GridToWorld(_layout);
 

@@ -34,9 +34,9 @@ namespace Tetris.Input
             _repeatSettings = repeatSettings;
 
             _moveNegX = new MoveKeyState { Key = bindigs.MoveNegativeX, Direction = Vector3Int.left };
-            _movePosX = new MoveKeyState { Key = bindigs.MoveNegativeX, Direction = Vector3Int.right };
-            _moveNegZ = new MoveKeyState { Key = bindigs.MoveNegativeX, Direction = Vector3Int.back };
-            _movePosX = new MoveKeyState { Key = bindigs.MoveNegativeX, Direction = Vector3Int.forward };
+            _movePosX = new MoveKeyState { Key = bindigs.MovePositiveX, Direction = Vector3Int.right };
+            _moveNegZ = new MoveKeyState { Key = bindigs.MoveNegativeZ, Direction = Vector3Int.back };
+            _movePosZ = new MoveKeyState { Key = bindigs.MovePositiveZ, Direction = Vector3Int.forward };
         }
 
         public void Tick(float deltaTime)

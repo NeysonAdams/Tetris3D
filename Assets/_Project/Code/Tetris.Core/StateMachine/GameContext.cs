@@ -105,7 +105,6 @@ namespace Tetris.Core.StateMachine
         {
             Field.Clear();
             Randomizer.Reset();
-
             CurrentPiece = null;
             NextPiece = null;
             Ghost = null;

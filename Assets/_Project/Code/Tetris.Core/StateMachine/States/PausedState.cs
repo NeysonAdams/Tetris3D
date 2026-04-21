@@ -1,11 +1,13 @@
 using Tetris.Core.Commands;
+using UnityEngine;
 
 namespace Tetris.Core.StateMachine.States
 {
     public sealed class PausedState : IGameState
     {
-        public void Enter(GameContext context) 
+        public void Enter(GameContext context)
         {
+            Debug.Log("[State] PausedState.Enter");
             context.Events.InvokeGamePaused();
         }
         public void Exit(GameContext context) 

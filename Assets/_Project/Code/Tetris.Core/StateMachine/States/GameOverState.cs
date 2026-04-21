@@ -1,11 +1,13 @@
 using Tetris.Core.Commands;
+using UnityEngine;
 
 namespace Tetris.Core.StateMachine.States
 {
     public sealed class GameOverState : IGameState
     {
-        public void Enter(GameContext context) 
+        public void Enter(GameContext context)
         {
+            Debug.Log("[State] GameOverState.Enter");
             context.Events.InvokeGameOver(context.Score);
         }
         public void Exit(GameContext context) { }

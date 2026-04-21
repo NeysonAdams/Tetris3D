@@ -30,7 +30,7 @@ namespace Tetris.Core.Fields
             SizeY = settings.SizeY;
             SizeZ = settings.SizeZ;
 
-            _cells = new Cell[SizeZ, SizeX, SizeY];
+            _cells = new Cell[SizeX, SizeY, SizeZ];
         }
 
         public Cell GetCell(int x, int y, int z) 
@@ -43,11 +43,11 @@ namespace Tetris.Core.Fields
             return _cells[x, y, z];
         }
 
-        public bool IsInside(Vector3Int position) 
+        public bool IsInside(Vector3Int position)
         {
-            return position.x >= 0 && position.x <= SizeX 
-                && position.y >= 0 && position.y <= SizeY
-                && position.z >= 0 && position.z <= SizeZ;
+            return position.x >= 0 && position.x < SizeX
+                && position.y >= 0 && position.y < SizeY
+                && position.z >= 0 && position.z < SizeZ;
         }
         public bool CanPlace(Piece piece)
         {
@@ -55,14 +55,20 @@ namespace Tetris.Core.Fields
                 throw new ArgumentNullException(nameof(piece));
 
             var cells = piece.Shape.Cells;
-            for (var i = 0; i<cells.Length;i++)
+            for (var i = 0; i < cells.Length; i++)
             {
                 var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation);
                 var worldPos = piece.Position + rotated;
 
+                // Проверяем горизонтальные границы всегда
+                if (worldPos.x < 0 || worldPos.x >= SizeX || worldPos.z < 0 || worldPos.z >= SizeZ)
+                    return false;
+
+                // Ячейки выше поля разрешены (для спавна), но не проверяем коллизии
                 if (worldPos.y >= SizeY) continue;
 
-                if (!IsInside(worldPos)) return false;
+                // Проверяем нижнюю границу и коллизии
+                if (worldPos.y < 0) return false;
 
                 if (_cells[worldPos.x, worldPos.y, worldPos.z].State != CellState.Empty)
                     return false;
@@ -87,7 +93,7 @@ namespace Tetris.Core.Fields
                 if (!IsInside(worldPos))
                 {
                     throw new InvalidOperationException(
-                        $"Cannot write cell at ({worldPos.x}, {worldPos.y}, {worldPos.z}) � position outside field. " +
+                        $"Cannot write cell at ({worldPos.x}, {worldPos.y}, {worldPos.z}) � position outside field. " +
                         "Caller must verify CanPlace before WriteCells.");
                 }
 
@@ -150,6 +156,8 @@ namespace Tetris.Core.Fields
                 {
                     ClearLayer(writeY);
                 }
+
+                writeY++;
             }
         }
 

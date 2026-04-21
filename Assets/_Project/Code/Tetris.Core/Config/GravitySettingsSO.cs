@@ -18,7 +18,7 @@ namespace Tetris.Core.Configs
         [Tooltip("Falling intevals for each level. index = level. If level > Length Use lastone")]
         private float[] _intervalsByLevel =
         {
-            0.80f, 0,70f, 0.60f, 0.50f, 0.40f, 0.30f,
+            0.80f, 0.70f, 0.60f, 0.50f, 0.40f, 0.30f,
             0.20f, 0.15f, 0.12f, 0.10f, 0.08f, 0.05f
         };
 
@@ -41,7 +41,7 @@ namespace Tetris.Core.Configs
         private void OnValidate()
         {
             _intervalsByLevel ??= Array.Empty<float>();
-            for (var i=0; i<=_intervalsByLevel.Length; i++)
+            for (var i=0; i<_intervalsByLevel.Length; i++)
             {
                 _intervalsByLevel[i] = Mathf.Max(MinInterval, _intervalsByLevel[i]);
             }

@@ -18,6 +18,8 @@ namespace Tetris.Presentation.Views
 
         private MaterialPropertyBlock _propertyBlock = default!;
         private DOTweenAnimationSettingsSO _animationSettings = default!;
+        private Material _ghostMaterial;
+        private Material _originalMaterial;
 
         private Tween? _flashTween;
         private Tween? _scaleTween;
@@ -25,12 +27,14 @@ namespace Tetris.Presentation.Views
         private bool _isInitialized;
         private bool _isGhostMode;
 
-        public void Initialize(DOTweenAnimationSettingsSO animationSettings)
+        public void Initialize(DOTweenAnimationSettingsSO animationSettings, Material ghostMaterial = null)
         {
             if (animationSettings == null)
                 throw new ArgumentNullException(nameof(animationSettings));
 
             _animationSettings = animationSettings;
+            _ghostMaterial = ghostMaterial;
+            _originalMaterial = _renderer.sharedMaterial;
             _propertyBlock = new MaterialPropertyBlock();
             _isInitialized = true;
         }
@@ -60,10 +64,17 @@ namespace Tetris.Presentation.Views
 
             _isGhostMode = isGhost;
 
-            _renderer.GetPropertyBlock(_propertyBlock);
-            var current = _propertyBlock.GetColor(BaseColorProperty);
-            var newAlpha = isGhost ? GhostAlpha : 1f;
-            ApplyColor(current, newAlpha);
+            if (_ghostMaterial != null)
+            {
+                _renderer.sharedMaterial = isGhost ? _ghostMaterial : _originalMaterial;
+            }
+            else
+            {
+                _renderer.GetPropertyBlock(_propertyBlock);
+                var current = _propertyBlock.GetColor(BaseColorProperty);
+                var newAlpha = isGhost ? GhostAlpha : NormalAlpha;
+                ApplyColor(current, newAlpha);
+            }
         }
 
         public void PlayLockFlash()
@@ -112,6 +123,11 @@ namespace Tetris.Presentation.Views
 
             transform.localScale = Vector3.zero;
 
+            // Reset material to original
+            if (_isGhostMode && _originalMaterial != null)
+            {
+                _renderer.sharedMaterial = _originalMaterial;
+            }
             _isGhostMode = false;
         }
 

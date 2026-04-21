@@ -1,11 +1,13 @@
 using Tetris.Core.Commands;
+using UnityEngine;
 
 namespace Tetris.Core.StateMachine.States
 {
     public sealed class LockingState : IGameState
     {
-        public void Enter(GameContext context) 
-        { 
+        public void Enter(GameContext context)
+        {
+            Debug.Log("[State] LockingState.Enter");
             if (context.CurrentPiece == null)
             {
                 throw new System.InvalidOperationException(

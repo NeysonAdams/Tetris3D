@@ -13,6 +13,7 @@ namespace Tetris.Presentation.Pooling
         private readonly BlockView _prefab;
         private readonly Transform _container;
         private readonly DOTweenAnimationSettingsSO _animationSettings;
+        private readonly Material _ghostMaterial;
         private readonly ObjectPool<BlockView> _pool;
 
         public Transform Container => _container;
@@ -21,12 +22,15 @@ namespace Tetris.Presentation.Pooling
             BlockView prefab,
              Transform container,
              DOTweenAnimationSettingsSO animationSettings,
+             Material ghostMaterial = null,
              int defaultCapacity = 64,
              int maxSize = 512)
         {
             if(prefab == null) throw new ArgumentNullException(nameof(prefab));
             if(container == null) throw new ArgumentNullException(nameof (container));
             if(animationSettings == null) throw new ArgumentNullException(nameof(animationSettings));
+
+            _ghostMaterial = ghostMaterial;
 
             if(defaultCapacity <1) throw new ArgumentOutOfRangeException(nameof(defaultCapacity));
             if(maxSize < defaultCapacity) throw new ArgumentOutOfRangeException(nameof(maxSize));
@@ -77,12 +81,12 @@ namespace Tetris.Presentation.Pooling
             _pool.Clear();
         }
 
-        private BlockView CreatePooled() 
-        { 
+        private BlockView CreatePooled()
+        {
             var instance = UnityEngine.Object.Instantiate(_prefab, _container);
-            instance.Initialize(_animationSettings);
+            instance.Initialize(_animationSettings, _ghostMaterial);
             instance.gameObject.SetActive(false);
-            return instance; 
+            return instance;
         }
         private void OnGet(BlockView view) 
         {

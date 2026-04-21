@@ -6,8 +6,9 @@ namespace Tetris.Core.StateMachine.States
 {
     public sealed class FallingState : IGameState
     {
-        public void Enter(GameContext context) 
+        public void Enter(GameContext context)
         {
+            Debug.Log("[State] FallingState.Enter");
             if (context.CurrentPiece == null)
             {
                 throw new System.InvalidOperationException(
@@ -17,13 +18,12 @@ namespace Tetris.Core.StateMachine.States
         public void Exit(GameContext context) { }
         public IGameState? Tick(GameContext context, float deltaTime)
         {
-            if (context.CurrentPiece != null) return null;
+            if (context.CurrentPiece == null) return null;
 
             var interval = GetCurrentInterval(context);
 
             context.Gravity.AccumulateTime += deltaTime;
 
-            var felledThisTick = false;
             while (context.Gravity.AccumulateTime >= interval)
             {
                 var candidate = context.CurrentPiece.Value.MoveBy(Vector3Int.down);
@@ -35,13 +35,16 @@ namespace Tetris.Core.StateMachine.States
                 context.CurrentPiece = candidate;
                 context.Gravity.AccumulateTime -= interval;
                 context.Gravity.LockDelayTimer = 0f;
-                felledThisTick = true;
 
                 context.Events.InvokePieceFell(candidate);
                 RecalculateGhost(context);
             }
 
-            if (!felledThisTick)
+            // Check if piece is grounded (cannot move down)
+            var downCandidate = context.CurrentPiece.Value.MoveBy(Vector3Int.down);
+            var isGrounded = !context.Field.CanPlace(downCandidate);
+
+            if (isGrounded)
             {
                 context.Gravity.LockDelayTimer += deltaTime;
                 if (context.Gravity.LockDelayTimer >= context.GravitySettings.LockDelay)
@@ -119,9 +122,9 @@ namespace Tetris.Core.StateMachine.States
             context.RequestTransition<LockingState>();
         }
 
-        private static void RecalculateGhost(GameContext context) 
+        private static void RecalculateGhost(GameContext context)
         {
-            if (context.CurrentPiece != null) return;
+            if (context.CurrentPiece == null) return;
 
             var ghost = GhostCalculator.Calculate(context.CurrentPiece.Value, context.Field);
             context.Ghost = ghost;

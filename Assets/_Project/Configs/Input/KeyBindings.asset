@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a212681917409744d8eea516ee73d2d2, type: 3}
   m_Name: KeyBindings
   m_EditorClassIdentifier: 
-  _moveNegativeX: 276
-  _movePositiveX: 275
-  _moveNegativeZ: 274
-  _movePositiveZ: 273
+  _moveNegativeX: 275
+  _movePositiveX: 276
+  _moveNegativeZ: 273
+  _movePositiveZ: 274
   _softDrop: 304
   _hardDrop: 32
   _rotateNegativeX: 97

@@ -7,17 +7,17 @@ namespace Tetris.Core.StateMachine.States
 {
     public sealed class SpawningState : IGameState
     {
-        public void Enter(GameContext context) 
+        public void Enter(GameContext context)
         {
-            var isFirstSpawn = context.NextPiece == null;
+            Debug.Log("[State] SpawningState.Enter");
 
+            var isFirstSpawn = context.NextPiece == null;
             if (isFirstSpawn)
             {
                 context.Events.InvokeGamesStarted();
-
                 var firstType = context.Randomizer.Next();
                 var firstPiece = context.Spawner.TrySpawn(context.Field, firstType);
-                if (firstPiece != null)
+                if (firstPiece == null)
                 {
                     context.RequestTransition<GameOverState>();
                     return;
@@ -46,12 +46,10 @@ namespace Tetris.Core.StateMachine.States
                 context.Events.InvokedNextPieceChanged(nextPiece.Value.Shape);
             }
 
-            //Compute Ghost for the current piece
             var ghost = GhostCalculator.Calculate(context.CurrentPiece.Value, context.Field);
             context.Ghost = ghost;
             context.Events.InvokedGhostPieceChanged(ghost);
 
-            // Reset Gravity for new piece
             var interval = GetIntervalForLevel(context);
             context.Gravity = new GravityState(interval);
 

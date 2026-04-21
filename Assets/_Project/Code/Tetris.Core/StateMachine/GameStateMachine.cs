@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Tetris.Core.Commands;
 using Tetris.Core.Scoring;
 using Tetris.Core.StateMachine.States;
+using UnityEngine;
 
 
 namespace Tetris.Core.StateMachine
@@ -35,8 +36,9 @@ namespace Tetris.Core.StateMachine
             _context = context;
             _states = states;
             _pendingTransition = initialStateType;
+            _current = states[initialStateType];
 
-            _context.SetTransitionRequester(QueueTrandition);
+            _context.SetTransitionRequester(QueueTransition);
 
             _current.Enter(_context);
             ProcessPendingTransition();
@@ -61,9 +63,9 @@ namespace Tetris.Core.StateMachine
             ProcessPendingTransition();
         }
 
-        private void QueueTrandition(Type stateType)
+        private void QueueTransition(Type stateType)
         {
-            if(stateType == null) throw new ArgumentNullException(nameof(stateType));
+            if (stateType == null) throw new ArgumentNullException(nameof(stateType));
 
             if (!_states.ContainsKey(stateType))
             {
@@ -84,7 +86,7 @@ namespace Tetris.Core.StateMachine
                 if(iterations >= MaxTransitionChain)
                 {
                     throw new InvalidOperationException(
-                        $"State transition chain exceeded {MaxTransitionChain} iterations � likely a loop. " +
+                        $"State transition chain exceeded {MaxTransitionChain} iterations — likely a loop. " +
                         $"Last pending: {_pendingTransition.Name}.");
                 }
 
@@ -100,7 +102,7 @@ namespace Tetris.Core.StateMachine
             _current.Exit(_context);
             _context.PreviousStateType = _current.GetType();
             _current = _states[stateType];
-            _current.Exit(_context);
+            _current.Enter(_context);
         }
     }
 }

@@ -75,9 +75,10 @@ namespace Tetris.Presentation.Views
             UpdateTransform();
         }
 
-        private void ReadInput() 
+        private void ReadInput()
         {
-            if (Input.GetMouseButton(1))
+            // Orbit rotation with left or right mouse button
+            if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
             {
                 var deltaX = Input.GetAxis("Mouse X");
                 var deltaY = Input.GetAxis("Mouse Y");

@@ -12,9 +12,10 @@ namespace Tetris.Core.StateMachine.States
         private int[] _clearingLayers = Array.Empty<int>();
         private TetrominoType _clearingType;
 
-        public void Enter(GameContext context) 
+        public void Enter(GameContext context)
         {
-            var cominfFromPause = context.PreviousStateType == typeof(PausedState); ;
+            Debug.Log("[State] LineClearingState.Enter");
+            var cominfFromPause = context.PreviousStateType == typeof(PausedState);
             if (cominfFromPause)
             {
                 return;
@@ -23,6 +24,11 @@ namespace Tetris.Core.StateMachine.States
             _elapsedTime = 0f;
             _clearingLayers = context.Field.GetFullLayers();
             _clearingType = context.LastLockedType;
+
+            if (_clearingLayers.Length > 0)
+            {
+                context.Events.InvokedLayerClearing(_clearingLayers, _clearingType);
+            }
         }
         public void Exit(GameContext context) { }
         public IGameState? Tick(GameContext context, float deltaTime)
@@ -30,7 +36,7 @@ namespace Tetris.Core.StateMachine.States
             _elapsedTime += deltaTime;
 
             var duration = context.ScoreSettings.LineClearAnimation;
-            if (_elapsedTime > duration) return null;
+            if (_elapsedTime < duration) return null;
 
             CompleteClear(context);
             context.RequestTransition<SpawningState>();
