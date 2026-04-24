@@ -18,5 +18,5 @@ MonoBehaviour:
   - {x: 1, y: 0, z: 0}
   - {x: 0, y: 1, z: 0}
   - {x: 1, y: 1, z: 0}
-  _defaultColor: {r: 1, g: 1, b: 0, a: 1}
+  _defaultColor: {r: 0.7686275, g: 0.65882355, b: 0.47058827, a: 1}
   _displayName: O-piece

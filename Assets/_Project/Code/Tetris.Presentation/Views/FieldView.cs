@@ -144,7 +144,7 @@ namespace Tetris.Presentation.Views
                     .SetEase(Ease.InBack)
                     .OnComplete(()=>
                     {
-                        if (capturedView != null) return;
+                        if (capturedView == null) return;
                         _pool.Return(capturedView);
                     });
             }
@@ -167,9 +167,15 @@ namespace Tetris.Presentation.Views
                 updates.Add((oldKey, newKey, kvp.Value));
             }
 
-            foreach (var (oldKey, newKey, view) in updates)
+            // First remove all old keys to avoid collisions
+            foreach (var (oldKey, _, _) in updates)
             {
                 _blocks.Remove(oldKey);
+            }
+
+            // Then add new keys and animate
+            foreach (var (_, newKey, view) in updates)
+            {
                 _blocks[newKey] = view;
 
                 var newWorldPos = newKey.GridToWorld(_layout);

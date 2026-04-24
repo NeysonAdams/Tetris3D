@@ -10,9 +10,11 @@ namespace Tetris.Presentation.Views
     public class BlockView : MonoBehaviour
     {
         private static readonly int BaseColorProperty = Shader.PropertyToID("_BaseColor");
+        private static readonly int EdgeColorProperty = Shader.PropertyToID("_EdgeColor");
 
         private const float GhostAlpha = 0.25f;
         private const float NormalAlpha = 0.7f;
+        private const float EdgeLightenAmount = 0.35f;
 
         [SerializeField] private MeshRenderer _renderer = default!;
 
@@ -141,8 +143,13 @@ namespace Tetris.Presentation.Views
 
         private void ApplyColor(Color color, float alpha)
         {
+            // Calculate lighter edge color (shift towards white)
+            var edgeColor = Color.Lerp(color, Color.white, EdgeLightenAmount);
+            edgeColor.a = color.a;
+
             _renderer.GetPropertyBlock(_propertyBlock);
             _propertyBlock.SetColor(BaseColorProperty, color);
+            _propertyBlock.SetColor(EdgeColorProperty, edgeColor);
             _renderer.SetPropertyBlock(_propertyBlock);
         }
     }
