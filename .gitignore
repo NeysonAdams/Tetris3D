@@ -97,3 +97,29 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# IDE
+.idea/
+.vs/
+*.csproj
+*.sln
+*.user
+*.suo
+
+# AI tools
+.claude/
+.cursor/
+.aider*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+/Windows/
+
+# Stray build artifacts in root
+/UnityPlayer.dll
+/*.exe
+/*.dll
+/*.pdb

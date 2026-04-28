@@ -1,5 +1,4 @@
 using Tetris.Core.Tetrominoes;
-using TextMateSharp.Internal.Rules;
 
 namespace Tetris.Core.Cells
 {

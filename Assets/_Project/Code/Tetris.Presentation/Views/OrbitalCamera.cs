@@ -6,7 +6,6 @@ using Tetris.Presentation.Configs;
 using UnityEngine;
 using System;
 
-
 namespace Tetris.Presentation.Views
 {
     public sealed class OrbitalCamera : MonoBehaviour, ICameraOrientationProvider
@@ -28,23 +27,13 @@ namespace Tetris.Presentation.Views
         private float _shakeRemainingTime;
         private float _shakeStrength;
 
-        /// <summary>
-        /// Returns the cardinal direction the camera is facing based on yaw angle.
-        /// Divides 360° into 4 quadrants of 90° each.
-        /// </summary>
         public CameraFacing CurrentFacing
         {
             get
             {
-                // Normalize yaw to 0-360 range
                 var normalizedYaw = _yaw % 360f;
                 if (normalizedYaw < 0f) normalizedYaw += 360f;
 
-                // Offset by 45° so quadrant centers align with cardinal directions
-                // Front: 315-45° (yaw ~0°)
-                // Right: 45-135° (yaw ~90°)
-                // Back: 135-225° (yaw ~180°)
-                // Left: 225-315° (yaw ~270°)
                 var shifted = (normalizedYaw + 45f) % 360f;
                 var quadrant = (int)(shifted / 90f);
 
@@ -60,9 +49,9 @@ namespace Tetris.Presentation.Views
         {
             if (_isInitialized) throw new InvalidOperationException("OrbitalCamera already initialized.");
 
-            if (events == null) throw new System.ArgumentNullException(nameof(events));
-            if (cameraSettings == null) throw new System.ArgumentNullException(nameof(cameraSettings));
-            if (animationSettings == null) throw new System.ArgumentNullException(nameof(animationSettings));
+            if (events == null) throw new ArgumentNullException(nameof(events));
+            if (cameraSettings == null) throw new ArgumentNullException(nameof(cameraSettings));
+            if (animationSettings == null) throw new ArgumentNullException(nameof(animationSettings));
 
             _events = events;
             _cameraSettings = cameraSettings;
@@ -79,15 +68,12 @@ namespace Tetris.Presentation.Views
             ApplyTransformImmediate();
 
             _isInitialized = true;
-
         }
 
         private void OnDestroy()
         {
             if (_isInitialized)
-            {
                 _events.PieceHardDropped -= HandlePieceHardDropped;
-            }
 
             _shakeTween?.Kill();
         }
@@ -102,7 +88,6 @@ namespace Tetris.Presentation.Views
 
         private void ReadInput()
         {
-            // Orbit rotation with left or right mouse button
             if (UnityEngine.Input.GetMouseButton(0) || UnityEngine.Input.GetMouseButton(1))
             {
                 var deltaX = UnityEngine.Input.GetAxis("Mouse X");
@@ -121,6 +106,7 @@ namespace Tetris.Presentation.Views
                 _distance = Mathf.Clamp(_distance, _cameraSettings.MinDistance, _cameraSettings.MaxDistance);
             }
         }
+
         private void UpdateTransform()
         {
             UpdateShake();
@@ -139,9 +125,7 @@ namespace Tetris.Presentation.Views
             if (_shakeRemainingTime <= 0f)
             {
                 if (_shakeOffset != Vector3.zero)
-                {
                     _shakeOffset = Vector3.zero;
-                }
                 return;
             }
 
@@ -151,9 +135,7 @@ namespace Tetris.Presentation.Views
             _shakeOffset = UnityEngine.Random.insideUnitSphere * _shakeStrength * decay;
 
             if (_shakeRemainingTime <= 0f)
-            {
                 _shakeOffset = Vector3.zero;
-            }
         }
 
         private void HandlePieceHardDropped(Piece piece, int cellsDropped)
@@ -163,7 +145,6 @@ namespace Tetris.Presentation.Views
 
             _shakeStrength = baseStrength * cellsFactor;
             _shakeRemainingTime = _animationSettings.HardDropShakeDuration;
-
         }
 
         private void ApplyTransformImmediate()
