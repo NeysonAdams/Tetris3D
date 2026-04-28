@@ -25,37 +25,39 @@ namespace Tetris.Core.Spawning
 
         public Piece? TrySpawn(IReadOnlyGameField field, TetrominoType type)
         {
-            if (field == null) 
+            if (field == null)
                 throw new ArgumentNullException(nameof(field));
 
-            var shape = _catalog.GetShape (type);
-            var bboxCenter = CalculateBoundingBoxCenter(shape.Cells, _settings.InitialRotation);
+            var shape = _catalog.GetShape(type);
+            var bboxCenter = CalculateBoundingBoxCenter(shape, _settings.InitialRotation);
 
             var basePos = new Vector3Int(field.SizeX / 2, field.SizeY, field.SizeZ / 2);
-            var spwanPos = basePos - bboxCenter + _settings.SpawnOfset;
+            var spawnPos = basePos - bboxCenter + _settings.SpawnOfset;
 
-            var piece = new Piece(shape, spwanPos, _settings.InitialRotation);
+            var piece = new Piece(shape, spawnPos, _settings.InitialRotation);
             return field.CanPlace(piece) ? piece : null;
         }
 
         private static Vector3Int CalculateBoundingBoxCenter(
-            Vector3Int[] cells, Rotation3D rotation)
+            TetrominoShapeSo shape, Rotation3D rotation)
         {
-            if(cells.Length == 0)
+            var cells = shape.Cells;
+            var pivot = shape.PivotCell;
+
+            if (cells.Length == 0)
             {
                 throw new ArgumentException(
                     "Cannot calculate bounding box for a shape with no cells.",
-                    nameof(cells)
-                    );
+                    nameof(shape));
             }
 
-            var first = RoatationMath.ApplyRotation(cells[0], rotation);
+            var first = RoatationMath.ApplyRotation(cells[0], rotation, pivot) - pivot;
             var min = first;
             var max = first;
 
             for (var i = 1; i < cells.Length; i++)
             {
-                var rotated = RoatationMath.ApplyRotation(cells[i], rotation);
+                var rotated = RoatationMath.ApplyRotation(cells[i], rotation, pivot) - pivot;
                 min = Vector3Int.Min(min, rotated);
                 max = Vector3Int.Max(max, rotated);
             }

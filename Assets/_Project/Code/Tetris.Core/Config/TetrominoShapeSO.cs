@@ -15,14 +15,41 @@ namespace Tetris.Core.Configs
 
         [SerializeField]
         private Vector3Int[] _cells = System.Array.Empty<Vector3Int>();
+
+        [SerializeField]
+        [Tooltip("Index of the cell that serves as rotation pivot (center of rotation)")]
+        private int _pivotCellIndex = 0;
+
         [SerializeField]
         private Color _defaultColor = Color.white;
+
         [SerializeField]
         private string _displayName = string.Empty;
 
         public Tetrominoes.TetrominoType Type => _type;
         public Vector3Int[] Cells => _cells;
+
+        /// <summary>
+        /// Index of the cell used as rotation pivot.
+        /// </summary>
+        public int PivotCellIndex => _pivotCellIndex;
+
+        /// <summary>
+        /// Position of the pivot cell (center of rotation).
+        /// </summary>
+        public Vector3Int PivotCell => _cells.Length > 0 && _pivotCellIndex < _cells.Length
+            ? _cells[_pivotCellIndex]
+            : Vector3Int.zero;
+
         public Color DefaultColor => _defaultColor;
         public string DisplayName => _displayName;
+
+        private void OnValidate()
+        {
+            if (_cells.Length > 0)
+            {
+                _pivotCellIndex = Mathf.Clamp(_pivotCellIndex, 0, _cells.Length - 1);
+            }
+        }
     }
 }

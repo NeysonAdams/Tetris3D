@@ -1,56 +1,64 @@
 // ============================================================================
-// SG_WaterSurfaceTop.shader
+// SG_WaterSurfaceTop.shader (v2 — AAA with refraction + Fresnel)
 // ----------------------------------------------------------------------------
-// Realistic animated water surface with multiple wave layers, vertex displacement,
-// caustics, fresnel, and visible ripple animation.
+// Physically-motivated water surface for underwater scenes. Seen from below.
+//
+// Features over v1:
+//   - Analytic normal derivation from FBM ripples (not just UV modulation)
+//   - Screen-space refraction — samples scene color through distorted UV
+//   - Fresnel term — view-angle-dependent transmission vs reflection
+//   - Depth-based tinting — deeper under surface = more water-colored
+//   - Two independent animated ripple layers
+//   - Edge distance fade to skybox
+//
+// Dependencies:
+//   - URP Asset must have "Opaque Texture" enabled (for _CameraOpaqueTexture)
+//   - URP Asset must have "Depth Texture" enabled (for _CameraDepthTexture)
+//a
+// Rendering: Transparent queue, alpha blend, cull OFF (visible from both sides).
+//
+// Compatibility: Unity 6 + URP 17+ + Forward+.
 // ============================================================================
 
 Shader "Custom/SG_WaterSurfaceTop"
 {
     Properties
     {
-        [Header(Water Colors)]
-        _ShallowColor ("Shallow Color", Color) = (0.4, 0.75, 0.85, 1)
-        _DeepColor ("Deep Color", Color) = (0.1, 0.35, 0.55, 1)
-        _BaseAlpha ("Base Alpha", Range(0, 1)) = 0.7
+        [Header(Water Base)]
+        _BaseColor ("Water Tint", Color) = (0.65, 0.88, 0.92, 1)
+        _BaseAlpha ("Base Alpha", Range(0, 1)) = 0.45
 
-        [Header(Wave Layer 1 Large)]
-        _WaveScale1 ("Wave Scale", Range(0.1, 5)) = 1.0
-        _WaveSpeed1 ("Wave Speed", Range(0, 3)) = 0.4
-        _WaveHeight1 ("Wave Height", Range(0, 2)) = 0.3
-        _WaveDirection1 ("Wave Direction", Vector) = (1, 0, 0.5, 0)
+        [Header(Ripple Layer 1 big waves)]
+        _RippleScale1 ("Ripple Scale 1", Range(0.5, 20)) = 2.5
+        _RippleSpeed1 ("Ripple Speed 1", Range(0, 2)) = 0.12
+        _RippleDirection1 ("Ripple Direction 1", Vector) = (1, 0.3, 0, 0)
 
-        [Header(Wave Layer 2 Medium)]
-        _WaveScale2 ("Wave Scale", Range(0.5, 10)) = 2.5
-        _WaveSpeed2 ("Wave Speed", Range(0, 3)) = 0.7
-        _WaveHeight2 ("Wave Height", Range(0, 1)) = 0.15
-        _WaveDirection2 ("Wave Direction", Vector) = (-0.7, 0, 1, 0)
+        [Header(Ripple Layer 2 small detail)]
+        _RippleScale2 ("Ripple Scale 2", Range(1, 40)) = 7.0
+        _RippleSpeed2 ("Ripple Speed 2", Range(0, 2)) = 0.3
+        _RippleDirection2 ("Ripple Direction 2", Vector) = (-0.5, 1, 0, 0)
 
-        [Header(Wave Layer 3 Small Detail)]
-        _WaveScale3 ("Wave Scale", Range(1, 20)) = 6.0
-        _WaveSpeed3 ("Wave Speed", Range(0, 5)) = 1.2
-        _WaveHeight3 ("Wave Height", Range(0, 0.5)) = 0.05
-        _WaveDirection3 ("Wave Direction", Vector) = (0.3, 0, -1, 0)
+        [Header(Ripple Intensity)]
+        _RippleIntensity ("Ripple Intensity", Range(0, 2)) = 0.8
+        _RippleContrast ("Ripple Contrast", Range(0.5, 5)) = 1.8
+        _BrightSpotIntensity ("Bright Spot Intensity", Range(0, 3)) = 1.2
 
-        [Header(Ripple Detail)]
-        _RippleScale ("Ripple Scale", Range(5, 50)) = 15.0
-        _RippleSpeed ("Ripple Speed", Range(0, 3)) = 0.8
-        _RippleIntensity ("Ripple Intensity", Range(0, 2)) = 0.6
+        [Header(Refraction)]
+        _RefractionStrength ("Refraction Strength", Range(0, 0.5)) = 0.15
+        _NormalStrength ("Normal Strength", Range(0, 3)) = 1.2
 
-        [Header(Caustics)]
-        _CausticsScale ("Caustics Scale", Range(1, 20)) = 8.0
-        _CausticsSpeed ("Caustics Speed", Range(0, 3)) = 0.5
-        _CausticsIntensity ("Caustics Intensity", Range(0, 3)) = 1.5
+        [Header(Fresnel Transmission)]
+        _FresnelPower ("Fresnel Power", Range(0.5, 10)) = 3.0
+        _ReflectiveColor ("Reflective Color (grazing angle)", Color) = (0.78, 0.91, 0.94, 1)
+        _TransmissiveColor ("Transmissive Color (straight through)", Color) = (1.0, 0.98, 0.91, 1)
 
-        [Header(Fresnel and Specular)]
-        _FresnelPower ("Fresnel Power", Range(1, 10)) = 3.0
-        _FresnelIntensity ("Fresnel Intensity", Range(0, 2)) = 0.8
-        _SpecularPower ("Specular Power", Range(10, 500)) = 120.0
-        _SpecularIntensity ("Specular Intensity", Range(0, 5)) = 2.0
+        [Header(Depth Tinting)]
+        _DepthFogDensity ("Depth Fog Density", Range(0, 2)) = 0.3
+        _DepthFogColor ("Depth Fog Color", Color) = (0.25, 0.5, 0.55, 1)
 
         [Header(Distance Fade)]
-        _FadeStart ("Fade Start Distance", Range(5, 200)) = 30.0
-        _FadeEnd ("Fade End Distance", Range(10, 500)) = 120.0
+        _FadeStart ("Fade Start Distance", Range(5, 200)) = 25.0
+        _FadeEnd ("Fade End Distance", Range(10, 500)) = 100.0
     }
 
     SubShader
@@ -82,34 +90,28 @@ Shader "Custom/SG_WaterSurfaceTop"
             #pragma multi_compile_fog
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _ShallowColor;
-                float4 _DeepColor;
+                float4 _BaseColor;
                 float _BaseAlpha;
-                float _WaveScale1;
-                float _WaveSpeed1;
-                float _WaveHeight1;
-                float4 _WaveDirection1;
-                float _WaveScale2;
-                float _WaveSpeed2;
-                float _WaveHeight2;
-                float4 _WaveDirection2;
-                float _WaveScale3;
-                float _WaveSpeed3;
-                float _WaveHeight3;
-                float4 _WaveDirection3;
-                float _RippleScale;
-                float _RippleSpeed;
+                float _RippleScale1;
+                float _RippleSpeed1;
+                float4 _RippleDirection1;
+                float _RippleScale2;
+                float _RippleSpeed2;
+                float4 _RippleDirection2;
                 float _RippleIntensity;
-                float _CausticsScale;
-                float _CausticsSpeed;
-                float _CausticsIntensity;
+                float _RippleContrast;
+                float _BrightSpotIntensity;
+                float _RefractionStrength;
+                float _NormalStrength;
                 float _FresnelPower;
-                float _FresnelIntensity;
-                float _SpecularPower;
-                float _SpecularIntensity;
+                float4 _ReflectiveColor;
+                float4 _TransmissiveColor;
+                float _DepthFogDensity;
+                float4 _DepthFogColor;
                 float _FadeStart;
                 float _FadeEnd;
             CBUFFER_END
@@ -128,9 +130,9 @@ Shader "Custom/SG_WaterSurfaceTop"
                 float3 positionWS  : TEXCOORD0;
                 float3 normalWS    : TEXCOORD1;
                 float3 viewDirWS   : TEXCOORD2;
-                float2 uv          : TEXCOORD3;
-                float fogCoord     : TEXCOORD4;
-                float waveHeight   : TEXCOORD5;
+                float4 screenPos   : TEXCOORD3;
+                float2 uv          : TEXCOORD4;
+                float fogCoord     : TEXCOORD5;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -140,16 +142,9 @@ Shader "Custom/SG_WaterSurfaceTop"
             // ----------------------------------------------------------------
             float Hash2D(float2 p)
             {
-                p = frac(p * float2(443.8975, 397.2973));
-                p += dot(p, p.yx + 19.19);
+                p = frac(p * float2(0.1031, 0.1030));
+                p += dot(p, p.yx + 33.33);
                 return frac((p.x + p.y) * p.x);
-            }
-
-            float2 Hash2D2(float2 p)
-            {
-                float3 p3 = frac(float3(p.xyx) * float3(0.1031, 0.1030, 0.0973));
-                p3 += dot(p3, p3.yzx + 33.33);
-                return frac((p3.xx + p3.yz) * p3.zy);
             }
 
             float ValueNoise2D(float2 p)
@@ -158,97 +153,59 @@ Shader "Custom/SG_WaterSurfaceTop"
                 float2 f = frac(p);
                 f = f * f * (3.0 - 2.0 * f);
 
-                float n00 = Hash2D(i);
+                float n00 = Hash2D(i + float2(0, 0));
                 float n10 = Hash2D(i + float2(1, 0));
                 float n01 = Hash2D(i + float2(0, 1));
                 float n11 = Hash2D(i + float2(1, 1));
 
-                return lerp(lerp(n00, n10, f.x), lerp(n01, n11, f.x), f.y);
+                float nx0 = lerp(n00, n10, f.x);
+                float nx1 = lerp(n01, n11, f.x);
+                return lerp(nx0, nx1, f.y);
             }
 
-            // Gradient noise for smoother waves
-            float GradientNoise(float2 p)
-            {
-                float2 i = floor(p);
-                float2 f = frac(p);
-                float2 u = f * f * (3.0 - 2.0 * f);
-
-                float2 ga = Hash2D2(i) * 2.0 - 1.0;
-                float2 gb = Hash2D2(i + float2(1, 0)) * 2.0 - 1.0;
-                float2 gc = Hash2D2(i + float2(0, 1)) * 2.0 - 1.0;
-                float2 gd = Hash2D2(i + float2(1, 1)) * 2.0 - 1.0;
-
-                float va = dot(ga, f);
-                float vb = dot(gb, f - float2(1, 0));
-                float vc = dot(gc, f - float2(0, 1));
-                float vd = dot(gd, f - float2(1, 1));
-
-                return lerp(lerp(va, vb, u.x), lerp(vc, vd, u.x), u.y) + 0.5;
-            }
-
-            // FBM with 4 octaves
-            float WaveFBM(float2 p)
+            float RippleFBM(float2 p)
             {
                 float n = 0.0;
                 float amp = 0.5;
                 float freq = 1.0;
-                float2x2 rot = float2x2(0.8, -0.6, 0.6, 0.8);
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    n += GradientNoise(p * freq) * amp;
-                    p = mul(rot, p);
-                    freq *= 2.1;
+                    n += ValueNoise2D(p * freq) * amp;
+                    freq *= 2.0;
                     amp *= 0.5;
                 }
                 return n;
             }
 
-            // Gerstner wave function
-            float3 GerstnerWave(float2 pos, float2 dir, float steepness, float wavelength, float speed, out float3 tangent, out float3 binormal)
+            // Combined ripple height at world XZ
+            float GetRippleHeight(float2 worldXZ)
             {
-                float k = 6.28318 / wavelength;
-                float c = sqrt(9.8 / k);
-                float2 d = normalize(dir);
-                float f = k * (dot(d, pos) - c * speed * _Time.y);
-                float a = steepness / k;
+                float2 uv1 = worldXZ * _RippleScale1 * 0.1;
+                float2 offset1 = normalize(_RippleDirection1.xy) * (_Time.y * _RippleSpeed1);
+                float h1 = RippleFBM(uv1 + offset1);
 
-                tangent = float3(
-                    -d.x * d.x * steepness * sin(f),
-                    d.x * steepness * cos(f),
-                    -d.x * d.y * steepness * sin(f)
-                );
-                binormal = float3(
-                    -d.x * d.y * steepness * sin(f),
-                    d.y * steepness * cos(f),
-                    -d.y * d.y * steepness * sin(f)
-                );
+                float2 uv2 = worldXZ * _RippleScale2 * 0.1;
+                float2 offset2 = normalize(_RippleDirection2.xy) * (_Time.y * _RippleSpeed2);
+                float h2 = RippleFBM(uv2 + offset2);
 
-                return float3(
-                    d.x * a * cos(f),
-                    a * sin(f),
-                    d.y * a * cos(f)
-                );
+                return (h1 + h2) * 0.5;
             }
 
-            // Caustics pattern
-            float Caustics(float2 uv)
+            // Analytic normal via central differences
+            float3 GetRippleNormal(float2 worldXZ)
             {
-                float2 p = uv;
-                float c = 0.0;
-                for (int i = 0; i < 3; i++)
-                {
-                    float2 offset = float2(
-                        sin(_Time.y * _CausticsSpeed * (0.5 + i * 0.2) + p.y * 3.0),
-                        cos(_Time.y * _CausticsSpeed * (0.7 + i * 0.15) + p.x * 2.5)
-                    ) * 0.3;
-                    c += GradientNoise((p + offset) * (1.0 + i * 0.5));
-                }
-                c = pow(saturate(c * 0.5), 2.0);
-                return c;
+                const float eps = 0.15;
+                float hL = GetRippleHeight(worldXZ - float2(eps, 0));
+                float hR = GetRippleHeight(worldXZ + float2(eps, 0));
+                float hD = GetRippleHeight(worldXZ - float2(0, eps));
+                float hU = GetRippleHeight(worldXZ + float2(0, eps));
+
+                float3 normal = float3(hL - hR, 2.0 * eps / _NormalStrength, hD - hU);
+                return normalize(normal);
             }
 
             // ----------------------------------------------------------------
-            // VERTEX — with wave displacement
+            // VERTEX
             // ----------------------------------------------------------------
             Varyings vert(Attributes IN)
             {
@@ -257,31 +214,16 @@ Shader "Custom/SG_WaterSurfaceTop"
                 UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
-                float3 posOS = IN.positionOS.xyz;
-                float3 posWS = TransformObjectToWorld(posOS);
+                VertexPositionInputs positions = GetVertexPositionInputs(IN.positionOS.xyz);
+                VertexNormalInputs normals = GetVertexNormalInputs(IN.normalOS);
 
-                // Calculate wave displacement
-                float3 t1, b1, t2, b2, t3, b3;
-                float3 wave1 = GerstnerWave(posWS.xz, _WaveDirection1.xz, 0.2, _WaveScale1, _WaveSpeed1, t1, b1) * _WaveHeight1;
-                float3 wave2 = GerstnerWave(posWS.xz, _WaveDirection2.xz, 0.15, _WaveScale2, _WaveSpeed2, t2, b2) * _WaveHeight2;
-                float3 wave3 = GerstnerWave(posWS.xz, _WaveDirection3.xz, 0.1, _WaveScale3, _WaveSpeed3, t3, b3) * _WaveHeight3;
-
-                float3 waveOffset = wave1 + wave2 + wave3;
-                posWS += waveOffset;
-
-                // Calculate normal from wave tangents
-                float3 tangent = float3(1, 0, 0) + t1 + t2 + t3;
-                float3 binormal = float3(0, 0, 1) + b1 + b2 + b3;
-                float3 normalWS = normalize(cross(binormal, tangent));
-
-                OUT.positionCS = TransformWorldToHClip(posWS);
-                OUT.positionWS = posWS;
-                OUT.normalWS = normalWS;
-                OUT.viewDirWS = GetWorldSpaceViewDir(posWS);
+                OUT.positionCS = positions.positionCS;
+                OUT.positionWS = positions.positionWS;
+                OUT.normalWS = normals.normalWS;
+                OUT.viewDirWS = GetWorldSpaceViewDir(positions.positionWS);
+                OUT.screenPos = ComputeScreenPos(positions.positionCS);
                 OUT.uv = IN.uv;
-                OUT.fogCoord = ComputeFogFactor(OUT.positionCS.z);
-                OUT.waveHeight = waveOffset.y;
-
+                OUT.fogCoord = ComputeFogFactor(positions.positionCS.z);
                 return OUT;
             }
 
@@ -293,81 +235,84 @@ Shader "Custom/SG_WaterSurfaceTop"
                 UNITY_SETUP_INSTANCE_ID(IN);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 
-                float3 normalWS = normalize(IN.normalWS);
                 float3 viewDirWS = normalize(IN.viewDirWS);
-
-                // Get main light
-                Light mainLight = GetMainLight();
-                float3 lightDir = mainLight.direction;
+                float2 worldXZ = IN.positionWS.xz;
 
                 // ============================================================
-                // SURFACE RIPPLES (detail normal perturbation)
+                // RIPPLE HEIGHT + NORMAL
                 // ============================================================
-                float2 rippleUV1 = IN.positionWS.xz * _RippleScale * 0.1;
-                float2 rippleUV2 = IN.positionWS.xz * _RippleScale * 0.15;
-                float2 offset1 = float2(_Time.y * _RippleSpeed * 0.7, _Time.y * _RippleSpeed * 0.5);
-                float2 offset2 = float2(-_Time.y * _RippleSpeed * 0.5, _Time.y * _RippleSpeed * 0.8);
-
-                float ripple1 = WaveFBM(rippleUV1 + offset1);
-                float ripple2 = WaveFBM(rippleUV2 + offset2);
-                float rippleCombined = (ripple1 + ripple2) * 0.5;
-
-                // Perturb normal with ripples
-                float3 rippleNormal = normalWS;
-                rippleNormal.xz += (rippleCombined - 0.5) * _RippleIntensity * 0.5;
-                rippleNormal = normalize(rippleNormal);
+                float rippleHeight = GetRippleHeight(worldXZ);
+                float rippleSaturated = saturate(pow(rippleHeight, _RippleContrast));
+                float3 rippleNormalWS = GetRippleNormal(worldXZ);
 
                 // ============================================================
-                // FRESNEL
+                // SCREEN-SPACE REFRACTION
                 // ============================================================
-                float NdotV = saturate(dot(rippleNormal, viewDirWS));
-                float fresnel = pow(1.0 - NdotV, _FresnelPower) * _FresnelIntensity;
+                float2 screenUV = IN.screenPos.xy / IN.screenPos.w;
+
+                float2 refractionOffset = rippleNormalWS.xz * _RefractionStrength;
+                float2 refractedUV = screenUV + refractionOffset;
+
+                half3 refractedScene = SampleSceneColor(refractedUV);
 
                 // ============================================================
-                // SPECULAR HIGHLIGHT
+                // DEPTH-BASED TINTING
                 // ============================================================
-                float3 halfDir = normalize(lightDir + viewDirWS);
-                float NdotH = saturate(dot(rippleNormal, halfDir));
-                float specular = pow(NdotH, _SpecularPower) * _SpecularIntensity;
+                float sceneDepthRaw = SampleSceneDepth(refractedUV);
+                float sceneDepthLinear = LinearEyeDepth(sceneDepthRaw, _ZBufferParams);
+                float surfaceDepthLinear = LinearEyeDepth(IN.positionCS.z / IN.positionCS.w, _ZBufferParams);
+                float depthDifference = max(sceneDepthLinear - surfaceDepthLinear, 0);
+
+                float depthFogFactor = 1.0 - exp(-depthDifference * _DepthFogDensity);
+                half3 depthTinted = lerp(refractedScene, _DepthFogColor.rgb, depthFogFactor);
 
                 // ============================================================
-                // CAUSTICS
+                // FRESNEL TRANSMISSION
                 // ============================================================
-                float2 causticsUV = IN.positionWS.xz * _CausticsScale * 0.1;
-                float caustics = Caustics(causticsUV) * _CausticsIntensity;
+                float3 fresnelNormal = normalize(lerp(IN.normalWS, rippleNormalWS, 0.5));
+                float NdotV = saturate(dot(fresnelNormal, viewDirWS));
+                float fresnel = pow(1.0 - NdotV, _FresnelPower);
+
+                half3 transmitted = depthTinted * _TransmissiveColor.rgb;
+                half3 reflected = _BaseColor.rgb * _ReflectiveColor.rgb;
+                half3 waterColor = lerp(transmitted, reflected, fresnel);
 
                 // ============================================================
-                // COLOR BLENDING
+                // BRIGHT SPOTS
                 // ============================================================
-                // Blend between shallow and deep based on wave height and view angle
-                float depthFactor = saturate(IN.waveHeight * 2.0 + 0.5 + fresnel * 0.3);
-                float3 waterColor = lerp(_DeepColor.rgb, _ShallowColor.rgb, depthFactor);
+                float2 uv1 = worldXZ * _RippleScale1 * 0.1;
+                float2 offset1 = normalize(_RippleDirection1.xy) * (_Time.y * _RippleSpeed1);
+                float r1 = RippleFBM(uv1 + offset1);
 
-                // Add caustics
-                waterColor += caustics * _ShallowColor.rgb * 0.5;
+                float2 uv2 = worldXZ * _RippleScale2 * 0.1;
+                float2 offset2 = normalize(_RippleDirection2.xy) * (_Time.y * _RippleSpeed2);
+                float r2 = RippleFBM(uv2 + offset2);
 
-                // Add specular
-                waterColor += specular * mainLight.color;
+                float interference = r1 * r2;
+                interference = saturate(pow(interference, 3.0));
+                float brightSpots = interference * _BrightSpotIntensity;
 
-                // Add fresnel rim
-                waterColor += fresnel * _ShallowColor.rgb * 0.3;
+                waterColor = waterColor + waterColor * brightSpots;
 
                 // ============================================================
                 // ALPHA
                 // ============================================================
-                float alpha = _BaseAlpha;
-                alpha += fresnel * 0.2;
-                alpha += rippleCombined * _RippleIntensity * 0.2;
+                float rippleMod = lerp(1.0 - _RippleIntensity * 0.4, 1.0 + _RippleIntensity * 0.3, rippleSaturated);
+                float alpha = _BaseAlpha * rippleMod;
 
-                // Distance fade
-                float distToCamera = length(IN.positionWS - _WorldSpaceCameraPos);
+                alpha = lerp(alpha, 1.0, depthFogFactor * 0.7);
+
+                float3 camToFrag = IN.positionWS - _WorldSpaceCameraPos;
+                float distToCamera = length(camToFrag);
                 float fadeT = saturate((distToCamera - _FadeStart) / max(_FadeEnd - _FadeStart, 0.001));
                 fadeT = smoothstep(0.0, 1.0, fadeT);
                 alpha *= (1.0 - fadeT);
 
                 alpha = saturate(alpha);
 
-                // Apply fog
+                // ============================================================
+                // FOG
+                // ============================================================
                 waterColor = MixFog(waterColor, IN.fogCoord);
 
                 return half4(waterColor, alpha);

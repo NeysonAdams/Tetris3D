@@ -37,7 +37,7 @@ namespace Tetris.Presentation.Configs
         private float _minDistance = 5f;
 
         [SerializeField]
-        private float _maxDistance = 5f;
+        private float _maxDistance = 20f;
 
         [Header("Smoothing")]
         [SerializeField]

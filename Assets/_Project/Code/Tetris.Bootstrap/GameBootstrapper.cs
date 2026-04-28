@@ -297,12 +297,13 @@ namespace Tetris.Bootstrap
             _levelDisplay.Initialize(_events, _stateMachine, _uiAnimationSettings);
             _nextPiecePanel.Initialize(_previewRenderer);
         }
-        private void InitializeInput() 
+        private void InitializeInput()
         {
             _inputSource = new KeyboardInputSource(
                 disptcher: _commandDispatcher,
                 bindigs: _keyBindings,
-                repeatSettings: _keyRepeatSettings);
+                repeatSettings: _keyRepeatSettings,
+                cameraOrientation: _orbitalCamera);
         }
     }
 }

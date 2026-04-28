@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _intialYaw: 30
   _initialPitch: 25
-  _initialDistance: 25
+  _initialDistance: 20
   _rotationSensitivity: 0.3
   _zoomSensitivity: 2
   _minPitch: -80
   _maxPitch: 80
-  _minDistance: 5
-  _maxDistance: 60
+  _minDistance: 10
+  _maxDistance: 30
   _dampingFactor: 0.15
   _targetOffset: {x: 0, y: 0, z: 0}

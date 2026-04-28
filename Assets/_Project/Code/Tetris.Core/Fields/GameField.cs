@@ -55,10 +55,11 @@ namespace Tetris.Core.Fields
                 throw new ArgumentNullException(nameof(piece));
 
             var cells = piece.Shape.Cells;
+            var pivot = piece.Shape.PivotCell;
             for (var i = 0; i < cells.Length; i++)
             {
-                var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation);
-                var worldPos = piece.Position + rotated;
+                var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation, pivot);
+                var worldPos = piece.Position + rotated - pivot;
 
                 // Проверяем горизонтальные границы всегда
                 if (worldPos.x < 0 || worldPos.x >= SizeX || worldPos.z < 0 || worldPos.z >= SizeZ)
@@ -83,10 +84,11 @@ namespace Tetris.Core.Fields
                 throw new ArgumentNullException(nameof(piece));
 
             var cells = piece.Shape.Cells;
+            var pivot = piece.Shape.PivotCell;
             for (var i = 0; i < cells.Length; i++)
             {
-                var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation);
-                var worldPos = piece.Position + rotated;
+                var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation, pivot);
+                var worldPos = piece.Position + rotated - pivot;
 
                 if (worldPos.y >= SizeY) continue;
 

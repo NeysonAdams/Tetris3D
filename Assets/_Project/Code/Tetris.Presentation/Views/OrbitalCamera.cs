@@ -1,6 +1,7 @@
 using DG.Tweening;
 using Tetris.Core.Events;
 using Tetris.Core.Tetrominoes;
+using Tetris.Input;
 using Tetris.Presentation.Configs;
 using UnityEngine;
 using System;
@@ -8,7 +9,7 @@ using System;
 
 namespace Tetris.Presentation.Views
 {
-    public sealed class OrbitalCamera : MonoBehaviour
+    public sealed class OrbitalCamera : MonoBehaviour, ICameraOrientationProvider
     {
         private GameEvents _events = default!;
         private CameraSettingsSO _cameraSettings = default!;
@@ -26,6 +27,30 @@ namespace Tetris.Presentation.Views
 
         private float _shakeRemainingTime;
         private float _shakeStrength;
+
+        /// <summary>
+        /// Returns the cardinal direction the camera is facing based on yaw angle.
+        /// Divides 360° into 4 quadrants of 90° each.
+        /// </summary>
+        public CameraFacing CurrentFacing
+        {
+            get
+            {
+                // Normalize yaw to 0-360 range
+                var normalizedYaw = _yaw % 360f;
+                if (normalizedYaw < 0f) normalizedYaw += 360f;
+
+                // Offset by 45° so quadrant centers align with cardinal directions
+                // Front: 315-45° (yaw ~0°)
+                // Right: 45-135° (yaw ~90°)
+                // Back: 135-225° (yaw ~180°)
+                // Left: 225-315° (yaw ~270°)
+                var shifted = (normalizedYaw + 45f) % 360f;
+                var quadrant = (int)(shifted / 90f);
+
+                return (CameraFacing)quadrant;
+            }
+        }
 
         public void Initialize(
             GameEvents events,
@@ -78,10 +103,10 @@ namespace Tetris.Presentation.Views
         private void ReadInput()
         {
             // Orbit rotation with left or right mouse button
-            if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
+            if (UnityEngine.Input.GetMouseButton(0) || UnityEngine.Input.GetMouseButton(1))
             {
-                var deltaX = Input.GetAxis("Mouse X");
-                var deltaY = Input.GetAxis("Mouse Y");
+                var deltaX = UnityEngine.Input.GetAxis("Mouse X");
+                var deltaY = UnityEngine.Input.GetAxis("Mouse Y");
 
                 _yaw += deltaX * _cameraSettings.RotationSenditivity * 60f;
                 _pitch -= deltaY * _cameraSettings.RotationSenditivity * 60f;
@@ -89,14 +114,14 @@ namespace Tetris.Presentation.Views
                 _pitch = Mathf.Clamp(_pitch, _cameraSettings.MinPitch, _cameraSettings.MaxPitch);
             }
 
-            var wheel = Input.GetAxis("Mouse ScrollWheel");
+            var wheel = UnityEngine.Input.GetAxis("Mouse ScrollWheel");
             if (Mathf.Abs(wheel) > 0.001f)
             {
                 _distance -= wheel * _cameraSettings.ZoomSensitivity * 10f;
                 _distance = Mathf.Clamp(_distance, _cameraSettings.MinDistance, _cameraSettings.MaxDistance);
             }
         }
-        private void UpdateTransform() 
+        private void UpdateTransform()
         {
             UpdateShake();
 
@@ -131,7 +156,7 @@ namespace Tetris.Presentation.Views
             }
         }
 
-        private void HandlePieceHardDropped(Piece piece, int cellsDropped) 
+        private void HandlePieceHardDropped(Piece piece, int cellsDropped)
         {
             var baseStrength = _animationSettings.HardDropShakeStrength;
             var cellsFactor = Mathf.Clamp(cellsDropped / 10f, 0.3f, 2f);

@@ -12,31 +12,56 @@ namespace Tetris.Input
         private readonly ICommandDispatcher _dispatcher;
         private readonly KeyBindingsSO _bindings;
         private readonly KeyRepeatSettingsSO _repeatSettings;
+        private readonly ICameraOrientationProvider _cameraOrientation;
 
-        private MoveKeyState _moveNegX;
-        private MoveKeyState _movePosX;
-        private MoveKeyState _moveNegZ;
-        private MoveKeyState _movePosZ;
+        private MoveKeyState _moveLeft;
+        private MoveKeyState _moveRight;
+        private MoveKeyState _moveUp;
+        private MoveKeyState _moveDown;
 
         private bool _softDropPressed;
+
+        // Direction remapping table: [facing][screenDirection] -> worldDirection
+        // Screen directions: 0=Left, 1=Right, 2=Up(forward), 3=Down(back)
+        private static readonly Vector3Int[][] DirectionRemapTable = new Vector3Int[][]
+        {
+            // Front (yaw ~0°): camera looks at +Z face, no remapping needed
+            new[] { Vector3Int.left, Vector3Int.right, Vector3Int.forward, Vector3Int.back },
+            // Right (yaw ~90°): camera looks at +X face
+            new[] { Vector3Int.forward, Vector3Int.back, Vector3Int.right, Vector3Int.left },
+            // Back (yaw ~180°): camera looks at -Z face
+            new[] { Vector3Int.right, Vector3Int.left, Vector3Int.back, Vector3Int.forward },
+            // Left (yaw ~270°): camera looks at -X face
+            new[] { Vector3Int.back, Vector3Int.forward, Vector3Int.left, Vector3Int.right }
+        };
 
         public KeyboardInputSource (
             ICommandDispatcher disptcher,
             KeyBindingsSO bindigs,
-            KeyRepeatSettingsSO repeatSettings)
+            KeyRepeatSettingsSO repeatSettings,
+            ICameraOrientationProvider cameraOrientation)
         {
             if(disptcher == null) throw new ArgumentNullException (nameof (disptcher));
             if(bindigs == null) throw new ArgumentNullException (nameof (bindigs));
             if(repeatSettings == null) throw new ArgumentNullException (nameof (repeatSettings));
+            if(cameraOrientation == null) throw new ArgumentNullException (nameof (cameraOrientation));
 
             _dispatcher = disptcher;
             _bindings = bindigs;
             _repeatSettings = repeatSettings;
+            _cameraOrientation = cameraOrientation;
 
-            _moveNegX = new MoveKeyState { Key = bindigs.MoveNegativeX, Direction = Vector3Int.left };
-            _movePosX = new MoveKeyState { Key = bindigs.MovePositiveX, Direction = Vector3Int.right };
-            _moveNegZ = new MoveKeyState { Key = bindigs.MoveNegativeZ, Direction = Vector3Int.back };
-            _movePosZ = new MoveKeyState { Key = bindigs.MovePositiveZ, Direction = Vector3Int.forward };
+            // Screen-relative direction indices: 0=Left, 1=Right, 2=Up, 3=Down
+            _moveLeft = new MoveKeyState { Key = bindigs.MoveNegativeX, DirectionIndex = 0 };
+            _moveRight = new MoveKeyState { Key = bindigs.MovePositiveX, DirectionIndex = 1 };
+            _moveUp = new MoveKeyState { Key = bindigs.MovePositiveZ, DirectionIndex = 2 };
+            _moveDown = new MoveKeyState { Key = bindigs.MoveNegativeZ, DirectionIndex = 3 };
+        }
+
+        private Vector3Int RemapDirection(int screenDirectionIndex)
+        {
+            var facing = (int)_cameraOrientation.CurrentFacing;
+            return DirectionRemapTable[facing][screenDirectionIndex];
         }
 
         public void Tick(float deltaTime)
@@ -55,10 +80,10 @@ namespace Tetris.Input
                 _dispatcher.Dispatch(new SoftDropCommand(false));
             }
 
-            ResetMoveState(ref _moveNegX);
-            ResetMoveState(ref _movePosX);
-            ResetMoveState(ref _moveNegZ);
-            ResetMoveState(ref _movePosZ);
+            ResetMoveState(ref _moveLeft);
+            ResetMoveState(ref _moveRight);
+            ResetMoveState(ref _moveUp);
+            ResetMoveState(ref _moveDown);
         }
 
         private static void ResetMoveState(ref MoveKeyState state)
@@ -67,18 +92,20 @@ namespace Tetris.Input
             state.IsInInitialWait = false;
         }
 
-        private void TickMoves(float deltaTime) 
+        private void TickMoves(float deltaTime)
         {
-            TickMoveKey(ref _moveNegX, deltaTime);
-            TickMoveKey(ref _movePosX, deltaTime);
-            TickMoveKey(ref _moveNegZ, deltaTime);
-            TickMoveKey(ref _movePosZ, deltaTime);
+            TickMoveKey(ref _moveLeft, deltaTime);
+            TickMoveKey(ref _moveRight, deltaTime);
+            TickMoveKey(ref _moveUp, deltaTime);
+            TickMoveKey(ref _moveDown, deltaTime);
         }
+
         private void TickMoveKey(ref MoveKeyState state, float deltaTime)
         {
             if (UnityEngine.Input.GetKeyDown(state.Key))
             {
-                _dispatcher.Dispatch(new MoveCommand(state.Direction));
+                var worldDirection = RemapDirection(state.DirectionIndex);
+                _dispatcher.Dispatch(new MoveCommand(worldDirection));
                 state.Timer = 0f;
                 state.IsInInitialWait = true;
                 return;
@@ -105,12 +132,13 @@ namespace Tetris.Input
             {
                 while (state.Timer >= _repeatSettings.RepeatInterbal)
                 {
-                    _dispatcher.Dispatch(new MoveCommand(state.Direction));
+                    var worldDirection = RemapDirection(state.DirectionIndex);
+                    _dispatcher.Dispatch(new MoveCommand(worldDirection));
                     state.Timer -= _repeatSettings.RepeatInterbal;
                 }
             }
         }
-        private void TickRotations() 
+        private void TickRotations()
         {
             if (UnityEngine.Input.GetKeyDown(_bindings.RotateNegativeX))
             {
@@ -142,7 +170,7 @@ namespace Tetris.Input
                 _dispatcher.Dispatch(new RotateCommand(RotationAxis.Z, 1));
             }
         }
-        private void TickDrops() 
+        private void TickDrops()
         {
             if(UnityEngine.Input.GetKeyDown(_bindings.SoftDrop))
             {
@@ -160,7 +188,7 @@ namespace Tetris.Input
                 _dispatcher.Dispatch(new HardDropCommand());
             }
         }
-        private void TickPause() 
+        private void TickPause()
         {
             if (UnityEngine.Input.GetKeyDown(_bindings.Pause))
             {
@@ -171,10 +199,9 @@ namespace Tetris.Input
         private struct MoveKeyState
         {
             public KeyCode Key;
-            public Vector3Int Direction;
+            public int DirectionIndex; // 0=Left, 1=Right, 2=Up, 3=Down (screen-relative)
             public float Timer;
             public bool IsInInitialWait;
         }
     }
-
 }

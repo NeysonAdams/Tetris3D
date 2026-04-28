@@ -25,7 +25,7 @@ namespace Tetris.Core.Configs
 
 
         public Vector3Int SpawnOfset => _spawnOffset;
-        public Rotation3D InitialRotation => new(_initialRxSteps, _initialRySteps, _initialRzSteps);
+        public Rotation3D InitialRotation => Rotation3D.FromSteps(_initialRxSteps, _initialRySteps, _initialRzSteps);
 
         private void OnValidate()
         {

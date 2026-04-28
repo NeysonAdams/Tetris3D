@@ -78,12 +78,13 @@ namespace Tetris.Presentation.Views
             if (piece.Shape == null) return;
 
             var color = piece.Shape.DefaultColor;
-            var cells= piece.Shape.Cells;
+            var cells = piece.Shape.Cells;
+            var pivot = piece.Shape.PivotCell;
 
             for (int i = 0; i < cells.Length; i++)
             {
-                var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation);
-                var logical = piece.Position + rotated;
+                var rotated = RoatationMath.ApplyRotation(cells[i], piece.Rotation, pivot);
+                var logical = piece.Position + rotated - pivot;
 
                 if (logical.y >= _field.SizeY) continue;
                 if(!_field.IsInside(logical)) continue;

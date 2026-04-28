@@ -130,13 +130,6 @@ namespace Tetris.Presentation.Views
             _children.Clear();
         }
 
-        private static Quaternion Rotation3DToQuaternion(Rotation3D rotation)
-        {
-            var result = Quaternion.identity;
-            result = Quaternion.AngleAxis(rotation.RxSteps * 90f, Vector3.right) * result;
-            result = Quaternion.AngleAxis(rotation.RySteps * 90f, Vector3.up) * result;
-            result = Quaternion.AngleAxis(rotation.RzSteps * 90f, Vector3.forward) * result;
-            return result;
-        }
+        private static Quaternion Rotation3DToQuaternion(Rotation3D rotation) => rotation.Quaternion;
     }
 }

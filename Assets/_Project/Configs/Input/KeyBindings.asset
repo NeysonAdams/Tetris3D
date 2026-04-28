@@ -18,10 +18,10 @@ MonoBehaviour:
   _movePositiveZ: 274
   _softDrop: 304
   _hardDrop: 32
-  _rotateNegativeX: 97
-  _rotatePositiveX: 100
-  _rotateNegativeY: 113
-  _rotatePositiveY: 101
+  _rotateNegativeX: 113
+  _rotatePositiveX: 101
+  _rotateNegativeY: 97
+  _rotatePositiveY: 100
   _rotateNegativeZ: 115
   _rotatePositiveZ: 119
   _pause: 27
