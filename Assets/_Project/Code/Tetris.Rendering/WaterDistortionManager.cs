@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TetrisAR.Rendering
+namespace Tetris.Rendering
 {
     public enum WaveType { PieceMove, LineClear }
 

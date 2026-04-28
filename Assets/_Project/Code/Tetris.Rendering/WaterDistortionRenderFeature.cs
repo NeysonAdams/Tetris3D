@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace TetrisAR.Rendering
+namespace Tetris.Rendering
 {
     [DisallowMultipleRendererFeature("Water Distortion")]
     public sealed class WaterDistortionRenderFeature : ScriptableRendererFeature

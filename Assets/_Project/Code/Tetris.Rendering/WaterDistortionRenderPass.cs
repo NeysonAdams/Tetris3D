@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 
-namespace TetrisAR.Rendering
+namespace Tetris.Rendering
 {
     public sealed class WaterDistortionRenderPass : ScriptableRenderPass
     {

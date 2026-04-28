@@ -4,7 +4,7 @@ using Tetris.Presentation;
 using Tetris.Presentation.Configs;
 using UnityEngine;
 
-namespace TetrisAR.Rendering
+namespace Tetris.Rendering
 {
     public sealed class WaterDistortionEffectController : MonoBehaviour
     {

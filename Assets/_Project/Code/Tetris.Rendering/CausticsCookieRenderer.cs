@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TetrisAR.Rendering
+namespace Tetris.Rendering
 {
     [DisallowMultipleComponent]
     public sealed class CausticsCookieRenderer : MonoBehaviour

@@ -22,7 +22,7 @@ using Tetris.UI.Configs;
 using Tetris.UI.Controllers;
 using Tetris.UI.Displays;
 using Tetris.UI.Panels;
-using TetrisAR.Rendering;
+using Tetris.Rendering;
 using UnityEngine;
 
 
