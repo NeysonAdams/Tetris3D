@@ -106,11 +106,6 @@ InitTestScene*.unity*
 *.user
 *.suo
 
-# AI tools
-.claude/
-.cursor/
-.aider*
-
 # OS
 .DS_Store
 Thumbs.db

@@ -16,7 +16,7 @@ A modern 3D Tetris implementation built with Unity 6 and URP, featuring clean ar
 
 ## Download
 
-**[Download for Windows](Windows/Tetris3D.exe)** — Ready-to-play build
+**[Download for Windows](https://drive.google.com/file/d/1GIQh9K-1QPKt4eDgEhsfOREJfsBn4MU3/view?usp=sharing)** — Ready-to-play build
 
 ## Overview
 
