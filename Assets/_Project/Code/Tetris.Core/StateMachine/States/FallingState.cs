@@ -95,7 +95,7 @@ namespace Tetris.Core.StateMachine.States
 
             context.CurrentPiece = candidate;
             context.Gravity.LockDelayTimer = 0f;
-            context.Events.InvokePieceMoved(candidate);
+            context.Events.InvokePieceMoved(candidate, direction);
             RecalculateGhost(context);
         }
 

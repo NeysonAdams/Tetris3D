@@ -89,7 +89,7 @@ namespace Tetris.Presentation.Views
 
             SpawnChildren(piece);
         }
-        private void HandlePieceMoved(Piece piece) 
+        private void HandlePieceMoved(Piece piece, Vector3Int direction)
         {
             MoveToPieceWorldPosition(piece, _animationSettings.PieceMoveDuration, _animationSettings.PieceMoveEase);
         }

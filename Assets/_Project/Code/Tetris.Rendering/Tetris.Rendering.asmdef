@@ -1,13 +1,11 @@
 {
-    "name": "Tetris.Bootstrap",
+    "name": "Tetris.Rendering",
     "rootNamespace": "",
     "references": [
         "GUID:cf86505ce2fdb0d4b9317075c2bd14bd",
-        "GUID:c5ecf86ee8dcb7743a228aa2e5c447e2",
         "GUID:8276b4d8b16d27e44b5f64ee95e3cc97",
-        "GUID:f8589304a78c7d24cb219f42a6b6b094",
-        "GUID:4b4ad84a243f07c4992f11c6b7153aef",
-        "Tetris.Rendering"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:15fc0a57446b3144c949da3e2b9737a9"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

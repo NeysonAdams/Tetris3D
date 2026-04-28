@@ -22,6 +22,7 @@ using Tetris.UI.Configs;
 using Tetris.UI.Controllers;
 using Tetris.UI.Displays;
 using Tetris.UI.Panels;
+using TetrisAR.Rendering;
 using UnityEngine;
 
 
@@ -93,6 +94,7 @@ namespace Tetris.Bootstrap
         [SerializeField] private OrbitalCamera _orbitalCamera = default!;
         [SerializeField] private PiecePreviewRenderer _previewRenderer = default!;
         [SerializeField] private PresentationPauseController _pauseController = default!;
+        [SerializeField] private WaterDistortionEffectController _waterDistortionController = default!;
 
         // ============================================
         // Scene refs � UI
@@ -274,6 +276,11 @@ namespace Tetris.Bootstrap
             _pauseController.Initialize(_events);
 
             _arenaView.Initialize(_field, _fieldLayout);
+
+            if (_waterDistortionController != null)
+            {
+                _waterDistortionController.Initialize(_events, _fieldLayout);
+            }
         }
 
         private Vector3 ComputeFieldCenter()

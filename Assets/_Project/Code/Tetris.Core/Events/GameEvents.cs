@@ -2,6 +2,7 @@ using System;
 using Tetris.Core.Configs;
 using Tetris.Core.Scoring;
 using Tetris.Core.Tetrominoes;
+using UnityEngine;
 
 namespace Tetris.Core.Events
 {
@@ -23,7 +24,7 @@ namespace Tetris.Core.Events
 
         #region Piece
         public event Action<Piece>? PieceSpawned;
-        public event Action<Piece>? PieceMoved;
+        public event Action<Piece, Vector3Int>? PieceMoved;  // (piece, moveDirection)
         public event Action<Piece>? PieceRotated;
         public event Action<Piece>? PieceFell;
         public event Action<Piece, int> PieceHardDropped;
@@ -31,7 +32,7 @@ namespace Tetris.Core.Events
         public event Action<Piece>? GhostPieceChanged;
 
         public void InvokePieceSwaped(Piece piece) => PieceSpawned?.Invoke(piece);
-        public void InvokePieceMoved(Piece piece) => PieceMoved?.Invoke(piece);
+        public void InvokePieceMoved(Piece piece, Vector3Int direction) => PieceMoved?.Invoke(piece, direction);
         public void InvokePieceRotated(Piece piece) => PieceRotated?.Invoke(piece);
         public void InvokePieceFell (Piece piece) => PieceFell?.Invoke(piece);
         public void InvokePiceHardDropped(Piece piece, int cellDropped) => PieceHardDropped?.Invoke(piece, cellDropped);
